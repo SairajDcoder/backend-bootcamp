@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Task Manager</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      input,
+      button {
+        margin: 5px;
+        padding: 5px;
+      }
+
+      .task {
+        margin: 5px 0;
+        padding: 8px;
+        border: 1px solid #ccc;
+      }
+
+      .completed {
+        text-decoration: line-through;
+        color: gray;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Task Manager</h1>
+
+    <h2>Signup</h2>
+    <input id="signupUsername" placeholder="Username" />
+    <input id="signupPassword" type="password" placeholder="Password" />
+    <button onclick="signup()">Signup</button>
+
+    <h2>Login</h2>
+    <input id="loginUsername" placeholder="Username" />
+    <input id="loginPassword" type="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+
+    <h2>Tasks</h2>
+    <input id="taskTitle" placeholder="Task title" />
+    <button onclick="createTask()">Add Task</button>
+    <div id="tasks"></div>
+
+    <h2>Health Check</h2>
+    <button onClick="chkHealth()">Check Health</button>
+    <h4 id="chk"></h4>
+
+    <script>
+      // Load token from localStorage if available
+      let token = localStorage.getItem("token");
+
+      async function signup() {
+        const username = document.getElementById("signupUsername").value;
+        const password = document.getElementById("signupPassword").value;
+
+        const res = await fetch("http://localhost:8080/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("User created! Now login.");
+        } else {
+          alert("Signup failed: " + JSON.stringify(data));
+        }
+      }
+
+      async function login() {
+        const username = document.getElementById("loginUsername").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const res = await fetch("http://localhost:8080/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          token = data.token;
+          localStorage.setItem("token", token); // Save token in localStorage
+          alert("Login successful!");
+          loadTasks();
+        } else {
+          alert("Login failed: " + JSON.stringify(data));
+        }
+      }
+
+      async function loadTasks() {
+        const res = await fetch("http://localhost:8080/tasks", {
+          headers: { Authorization: "Bearer " + token },
+        });
+
+        const tasks = await res.json();
+        const tasksDiv = document.getElementById("tasks");
+        tasksDiv.innerHTML = "";
+        tasks.forEach((task) => {
+          const div = document.createElement("div");
+          div.className = "task " + (task.complete ? "completed" : "");
+          div.innerHTML = `
+          <span>${task.title}</span>
+          <button onclick="toggleTask('${task._id}', ${task.complete})">
+            ${task.complete ? "Undo" : "Complete"}
+          </button>
+          <button onclick="deleteTask('${task._id}')">Delete</button>
+        `;
+          tasksDiv.appendChild(div);
+        });
+      }
+
+      async function createTask() {
+        const title = document.getElementById("taskTitle").value;
+
+        const res = await fetch("http://localhost:8080/tasks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ title }),
+        });
+
+        if (res.ok) {
+          document.getElementById("taskTitle").value = "";
+          loadTasks();
+        } else {
+          const data = await res.json();
+          alert("Failed to create task: " + JSON.stringify(data));
+        }
+      }
+
+      async function chkHealth() {
+        const chk = document.getElementById("chk");
+        try {
+          const res = await fetch("http://localhost:8080/health");
+          const data = await res.json();
+
+          console.log("Health API response:", data);
+
+          chk.innerText = `Status: ${data.status}
+                Uptime: ${data.uptime.toFixed(2)} seconds
+                Time: ${new Date(data.timestamp).toLocaleString()}`;
+        } catch (err) {
+          chk.innerText = "Error checking health!";
+          console.error(err);
+        }
+      }
+
+      async function toggleTask(id, complete) {
+        const res = await fetch("http://localhost:8080/tasks/" + id, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ complete: !complete }),
+        });
+
+        if (res.ok) {
+          loadTasks();
+        } else {
+          const data = await res.json();
+          alert("Failed to update task: " + JSON.stringify(data));
+        }
+      }
+
+      async function deleteTask(id) {
+        const res = await fetch("http://localhost:8080/tasks/" + id, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token },
+        });
+
+        if (res.ok) {
+          loadTasks();
+        } else {
+          const data = await res.json();
+          alert("Failed to delete task: " + JSON.stringify(data));
+        }
+      }
+
+      if (token) {
+        loadTasks();
+      }
+    </script>
+  </body>
+</html>
