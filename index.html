@@ -57,7 +57,7 @@
         const username = document.getElementById("signupUsername").value;
         const password = document.getElementById("signupPassword").value;
 
-        const res = await fetch("http://localhost:8080/signup", {
+        const res = await fetch("https://backend-bootcamp-ulgx.onrender.com/signup", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -77,7 +77,7 @@
         const username = document.getElementById("loginUsername").value;
         const password = document.getElementById("loginPassword").value;
 
-        const res = await fetch("http://localhost:8080/login", {
+        const res = await fetch("https://backend-bootcamp-ulgx.onrender.com/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
@@ -95,7 +95,7 @@
       }
 
       async function loadTasks() {
-        const res = await fetch("http://localhost:8080/tasks", {
+        const res = await fetch("https://backend-bootcamp-ulgx.onrender.com/tasks", {
           headers: { Authorization: "Bearer " + token },
         });
 
@@ -119,7 +119,7 @@
       async function createTask() {
         const title = document.getElementById("taskTitle").value;
 
-        const res = await fetch("http://localhost:8080/tasks", {
+        const res = await fetch("https://backend-bootcamp-ulgx.onrender.com/tasks", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -140,7 +140,7 @@
       async function chkHealth() {
         const chk = document.getElementById("chk");
         try {
-          const res = await fetch("http://localhost:8080/health");
+          const res = await fetch("https://backend-bootcamp-ulgx.onrender.com/health");
           const data = await res.json();
 
           console.log("Health API response:", data);
@@ -155,7 +155,7 @@
       }
 
       async function toggleTask(id, complete) {
-        const res = await fetch("http://localhost:8080/tasks/" + id, {
+        const res = await fetch("https://backend-bootcamp-ulgx.onrender.com/" + id, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -173,7 +173,7 @@
       }
 
       async function deleteTask(id) {
-        const res = await fetch("http://localhost:8080/tasks/" + id, {
+        const res = await fetch("https://backend-bootcamp-ulgx.onrender.com/" + id, {
           method: "DELETE",
           headers: { Authorization: "Bearer " + token },
         });
